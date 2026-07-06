@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Avaliação de História - Egito Antigo</title>
+<style>
+:root{
+  --areia:#f6dfaa;--papiro:#fff7df;--azul:#0b4f68;--azul2:#07394e;--ouro:#c9952c;--vermelho:#9b3a28;--marrom:#3b2413;--verde:#2f7d4f;--cinza:#f2efe7;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top left,rgba(201,149,44,.30),transparent 30%),linear-gradient(135deg,#f9e5b5,#d8ac5d);color:var(--marrom);line-height:1.45}
+.container{max-width:1180px;margin:0 auto;padding:18px}
+.header{background:rgba(255,247,223,.96);border:5px solid var(--azul);outline:3px solid var(--ouro);border-radius:24px;padding:20px;text-align:center;box-shadow:0 12px 30px rgba(55,35,15,.25)}
+h1{margin:0;color:var(--azul2);font-size:clamp(28px,4vw,48px);text-transform:uppercase}.subtitle{font-weight:bold;color:var(--vermelho);font-size:20px;margin:8px 0 0}.small{font-size:14px;color:#5a3a20}
+.card{background:rgba(255,247,223,.96);border:3px solid var(--azul);border-radius:20px;padding:18px;margin-top:16px;box-shadow:0 8px 22px rgba(55,35,15,.20)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:800px){.row{grid-template-columns:1fr}}
+label{display:block;font-weight:bold;margin:10px 0 6px;color:var(--azul2)}
+select,input,textarea{width:100%;border:2px solid var(--ouro);border-radius:12px;padding:11px;font-size:16px;background:white;color:var(--marrom)}
+textarea{min-height:100px;resize:vertical}
+button{border:none;border-radius:999px;padding:12px 18px;background:var(--vermelho);color:white;font-weight:bold;font-size:16px;cursor:pointer;margin:6px;box-shadow:0 4px 0 rgba(0,0,0,.18)}button.secondary{background:var(--azul)}button.green{background:var(--verde)}button:disabled{background:#999;cursor:not-allowed;box-shadow:none}.center{text-align:center}.hidden{display:none!important}
+.notice{background:#fff3cd;border-left:8px solid var(--ouro);padding:12px;border-radius:12px;margin:12px 0}.timer{position:sticky;top:0;z-index:5;margin:12px 0;background:var(--azul2);color:white;border-radius:16px;padding:12px;text-align:center;font-size:20px;font-weight:bold;box-shadow:0 8px 18px rgba(0,0,0,.20)}
+.question{background:white;border:2px solid #e4c775;border-radius:16px;padding:14px;margin:12px 0}.qtitle{font-weight:bold;color:var(--azul2);font-size:18px;margin-bottom:8px}.options label{font-weight:normal;color:var(--marrom);display:flex;gap:8px;align-items:flex-start;background:var(--cinza);padding:9px;border-radius:10px;border:1px solid #e5dcc0}.options input{width:auto;margin-top:4px}.badge{display:inline-block;background:var(--vermelho);color:white;padding:5px 10px;border-radius:999px;font-size:13px;margin-right:6px}.scorebox{font-size:22px;font-weight:bold;color:var(--azul2);background:white;border:3px solid var(--ouro);border-radius:16px;padding:14px;text-align:center}.correct{color:var(--verde);font-weight:bold}.wrong{color:var(--vermelho);font-weight:bold}.answerline{background:#f8f5ea;padding:10px;border-radius:10px;margin-top:8px;border-left:6px solid var(--ouro)}
+@media print{body{background:white}.no-print,.timer,#startArea{display:none!important}.card,.header{box-shadow:none;break-inside:avoid}.container{max-width:100%;padding:0}.question{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="container">
+<header class="header">
+<h1>Avaliação de História</h1>
+<p class="subtitle">Egito Antigo — 6º Ano — 2º Trimestre</p>
+<p class="small">Valor: 2,5 pontos | 15 questões de múltipla escolha, 3 de completar e 2 de responder</p>
+</header>
+
+<section class="card" id="startArea">
+<h2>Identificação do estudante</h2>
+<div class="row">
+<div><label for="student">Selecione seu nome</label><select id="student"><option value="">-- selecione --</option></select></div>
+<div><label for="turma">Turma</label><input id="turma" value="6º Ano - Integral - A" readonly></div>
+</div>
+<div class="notice"><b>Orientação:</b> leia com atenção. O sistema só libera a finalização após o tempo mínimo de leitura e resolução. Ao final, aparecerá sua nota, suas respostas e o gabarito.</div>
+<div class="center"><button class="green" onclick="startExam()">Iniciar avaliação</button></div>
+</section>
+
+<section class="timer hidden no-print" id="timerBox">Tempo mínimo para finalizar: <span id="timer">08:00</span></section>
+
+<section class="card hidden" id="examArea">
+<h2 id="examTitle">Avaliação</h2>
+<div id="questionsArea"></div>
+<div class="center no-print"><button id="finishBtn" onclick="finishExam()" disabled>Finalizar avaliação</button><button class="secondary" onclick="window.print()">Imprimir / salvar PDF</button></div>
+</section>
+
+<section class="card hidden" id="resultArea">
+<h2>Resultado da avaliação</h2>
+<div class="scorebox" id="scoreBox"></div>
+<div id="feedbackArea"></div>
+<div class="center no-print"><button class="secondary" onclick="window.print()">Imprimir resultado</button><button onclick="location.reload()">Nova avaliação</button></div>
+</section>
+</div>
+
+<script>
+const GOOGLE_SCRIPT_URL = ""; // Cole aqui a URL do aplicativo da Web do Google Apps Script.
+
+const students = [
+"ALICIA PINHEIRO DA SILVA","ARTHUR GABRIEL FERREIRA DO NASCIMENTO","DAVID DA SILVA GONÇALVES DE OLIVEIRA","DONATO ELIAS NETO","EMANUELLI MARCOLINO RUIZ","EMANUELLY VITÓRIA LOPES RODRIGUES FELIX","EMILY DE SOUZA FREIRIA","HELENA RAMOS TARDELLI","ISADORA GIOVANA DA SILVA","JOÃO MIGUEL FERREIRA RODRIGUES","JOSÉ APARECIDO DE PAULA CAMARGO","JOSÉ MARCELO APARECIDO GONÇALVES","JOSIANE GONÇALVES DE ALMEIDA","JOSIVAN GONÇALVES DE ALMEIDA","LETÍCIA GOMES DA SILVA","LUIZ FELIPE TARDELLI DA SILVA","LUKAS EDUARDO LUNA DA SILVA","MARIA JULIA FERREIRA DE SOUZA PAULO","MARIA SOFIA ALMEIDA DE LIMA","MATHEUS VICENTE RODRIGUES DA SILVEIRA","MIGUEL HENRIQUE FERNANDES LEAL","MIRELLY CORDEIRO DA SILVA","PEDRO RICARDO GONÇALVES DE OLIVEIRA","SAMUEL OTÁVIO MONTEIRO","SOFIA GRAZIELLE TORREGROSSA FERREIRA","THALLES ALVES GONÇALVES","TICIANE OTAVIO MARQUES","VITOR HUGO CONDÉ DA LUZ","VITOR RAFAEL CASTRO ALVES GARDINO","YURI PRESTES BORGES","ROBERTA RODRIGUES DE OLIVEIRA","LAVINYA SILVA HENRIQUE ADRIANO"
+];
+
+const mcqBank = [
+{q:"Onde se desenvolveu a civilização do Egito Antigo?",o:["Às margens do Rio Nilo","Nas montanhas da Grécia","No deserto do Saara, longe dos rios","Às margens do Rio Amazonas"],a:0},
+{q:"Por que o Rio Nilo foi importante para o Egito Antigo?",o:["Porque ajudava na agricultura e na vida da população","Porque impedia qualquer comércio","Porque era usado apenas para guerras","Porque ficava fora do território egípcio"],a:0},
+{q:"Quem foi Menés no processo de formação do Egito?",o:["O rei associado à unificação do Alto e Baixo Egito","Um escriba responsável pelos impostos","Um invasor hicso","Um nomarca da Núbia"],a:0},
+{q:"Por volta de 3100 a.C., Menés teria realizado qual ação importante?",o:["Unificou o Alto e o Baixo Egito","Construiu todas as esfinges","Criou o alfabeto latino","Expulsou os romanos do Egito"],a:0},
+{q:"O que eram os nomos?",o:["Regiões ou províncias administrativas do Egito","Templos funerários dos faraós","Deuses ligados ao Rio Nilo","Barcos usados no comércio"],a:0},
+{q:"Quem administrava os nomos?",o:["Os nomarcas","Os hicsos","Os escribas apenas","Os camponeses"],a:0},
+{q:"Os nomarcas eram:",o:["chefes locais das províncias egípcias","soldados estrangeiros","sacerdotes gregos","construtores de barcos"],a:0},
+{q:"Como os egípcios viam o faraó?",o:["Como rei e deus vivo","Como um simples comerciante","Como um estrangeiro sem poder","Como um escriba comum"],a:0},
+{q:"O faraó concentrava principalmente quais poderes?",o:["Político, religioso e militar","Apenas esportivo","Somente artístico","Apenas comercial"],a:0},
+{q:"Qual era uma função do faraó?",o:["Organizar obras públicas e proteger o território","Vender terras para os gregos","Eliminar a escrita","Acabar com a religião"],a:0},
+{q:"Os Períodos Intermediários foram marcados por:",o:["crises políticas e enfraquecimento do faraó","máxima estabilidade em todo o império","fim definitivo da agricultura","ausência total de conflitos"],a:0},
+{q:"Durante os Períodos Intermediários, o Egito ficava mais sujeito a:",o:["disputas internas e invasões externas","viagens espaciais","eleições modernas","industrialização"],a:0},
+{q:"Qual região, ao sul do Egito, era rica em minerais?",o:["Núbia","Roma","China","Fenícia"],a:0},
+{q:"Durante o Médio Império, o Egito expandiu relações em direção à:",o:["Núbia","Península Ibérica","América","Escandinávia"],a:0},
+{q:"Quem eram os hicsos?",o:["Um povo cuja expulsão marcou o início do Novo Império","Funcionários que registravam impostos","Chefes dos nomos","Deuses protetores do faraó"],a:0},
+{q:"A expulsão dos hicsos marcou o início de qual fase?",o:["Novo Império","Império Romano","Idade Média","Período Helenístico"],a:0},
+{q:"No Novo Império, o Egito viveu uma fase de:",o:["grandes conquistas militares","fim do comércio","desaparecimento do faraó","total isolamento"],a:0},
+{q:"Com as conquistas do Novo Império, o Egito passou a controlar:",o:["rotas comerciais","indústrias modernas","portos americanos","ferrovias"],a:0},
+{q:"O que eram as rotas comerciais?",o:["Caminhos de comércio entre regiões","Túmulos dos faraós","Leis religiosas escritas em pedra","Províncias agrícolas"],a:0},
+{q:"Quem eram os escribas?",o:["Funcionários responsáveis pelos registros escritos","Soldados estrangeiros","Camponeses sem função administrativa","Reis do Alto Egito"],a:0},
+{q:"Uma função dos escribas era registrar:",o:["colheitas, impostos e rebanhos","jogos eletrônicos","mapas da América","leis brasileiras"],a:0},
+{q:"Por que os escribas eram importantes?",o:["Porque ajudavam no controle da economia e da administração","Porque substituíam o faraó em todas as guerras","Porque impediam o comércio","Porque destruíam documentos"],a:0},
+{q:"O que é uma esfinge?",o:["Grande estátua com corpo de leão e cabeça humana ou de carneiro","Pequena moeda egípcia","Documento escrito por escribas","Região administrativa"],a:0},
+{q:"A Esfinge de Gizé é lembrada como:",o:["uma das esfinges mais conhecidas","um rio importante","um nomo do sul","um povo invasor"],a:0},
+{q:"As esfinges representavam, entre outros elementos:",o:["força, poder e religiosidade","fraqueza e ausência de religião","comércio moderno","democracia ateniense"],a:0},
+{q:"A sociedade egípcia era marcada por forte:",o:["religiosidade","ateísmo obrigatório","industrialização","igualdade política moderna"],a:0},
+{q:"A centralização do poder no Egito estava ligada principalmente ao:",o:["faraó","camponês","mercador estrangeiro","soldado romano"],a:0},
+{q:"O texto-base afirma que o Egito foi uma civilização:",o:["complexa e organizada","sem governo","sem escrita","sem economia"],a:0},
+{q:"A unificação do Egito fortaleceu:",o:["o poder político e a organização do Estado","o desaparecimento do Estado","a divisão total do território","o fim das obras públicas"],a:0},
+{q:"O Alto e o Baixo Egito foram:",o:["dois reinos unificados por Menés","duas cidades romanas","dois rios da Núbia","duas pirâmides"],a:0},
+{q:"Os costumes e práticas religiosas semelhantes aparecem no texto associados aos:",o:["nomos","hicsos","barcos","escribas estrangeiros"],a:0},
+{q:"Qual alternativa apresenta uma característica do governo do faraó?",o:["Autoridade política e religiosa","Eleição por voto popular moderno","Ausência de poder militar","Submissão aos nomarcas"],a:0},
+{q:"Qual grupo ajudava a manter os registros necessários ao Estado egípcio?",o:["Escribas","Hicsos","Pastores nômades","Romanos"],a:0},
+{q:"O controle da economia no Egito dependia também:",o:["dos registros escritos","da ausência de agricultura","da proibição do comércio","do fim dos impostos"],a:0},
+{q:"Qual alternativa se relaciona ao Médio Império?",o:["Expansão em direção à Núbia","Descobrimento do Brasil","Revolução Industrial","Formação de feudos medievais"],a:0},
+{q:"Qual alternativa se relaciona ao Novo Império?",o:["Expulsão dos hicsos e conquistas militares","Criação da internet","Fim imediato do Egito","Governo de reis europeus"],a:0},
+{q:"O termo 'Estado' no texto se relaciona à:",o:["organização política e administrativa do Egito","brincadeira religiosa","pequena família isolada","falta de governo"],a:0},
+{q:"A administração dos nomos demonstra que o Egito tinha:",o:["organização territorial","ausência de território","somente aldeias sem controle","governo estrangeiro romano"],a:0},
+{q:"Qual elemento natural aparece como fundamental para o desenvolvimento egípcio?",o:["Rio Nilo","Oceano Pacífico","Cordilheira dos Andes","Rio Tietê"],a:0},
+{q:"Quando o poder do faraó enfraquecia, aumentava a possibilidade de:",o:["crises e invasões","maior centralização imediata","fim das disputas","desaparecimento do deserto"],a:0},
+{q:"A religiosidade egípcia aparece no texto quando se afirma que:",o:["o faraó era considerado um deus vivo","os escribas não sabiam escrever","a Núbia ficava ao norte da Europa","os hicsos eram agricultores locais"],a:0},
+{q:"O que ajudava o faraó a controlar a economia?",o:["Registros de colheitas, rebanhos e impostos","A ausência de escribas","O fim dos nomos","A proibição da escrita"],a:0},
+{q:"A Núbia era importante para os egípcios porque:",o:["era rica em minerais e ligada ao comércio","ficava na América","não tinha nenhum recurso","era capital do Egito"],a:0},
+{q:"A palavra 'unificação' significa, no contexto do Egito:",o:["juntar dois reinos sob um mesmo poder","separar totalmente o território","acabar com toda administração","expulsar os escribas"],a:0},
+{q:"Qual alternativa reúne corretamente elementos do Egito Antigo?",o:["Faraó, escribas, nomos e Rio Nilo","Imperador romano, feudo, castelo e vassalo","Fábrica, operário, trem e carvão","Presidente, Congresso, Constituição de 1988"],a:0},
+{q:"A Esfinge de Gizé está relacionada à cultura:",o:["egípcia","brasileira republicana","romana medieval","industrial inglesa"],a:0},
+{q:"O texto-base destaca que o Egito possuía administração:",o:["eficiente","inexistente","moderna e digital","baseada em eleições atuais"],a:0},
+{q:"Os nomarcas auxiliavam no controle:",o:["das províncias egípcias","das fábricas modernas","das escolas brasileiras","dos navios portugueses"],a:0},
+{q:"As conquistas do Novo Império ampliaram o controle egípcio sobre:",o:["territórios e comércio","computadores e redes sociais","feudos e castelos","repúblicas modernas"],a:0},
+{q:"Qual frase melhor resume o Egito Antigo segundo o texto?",o:["Civilização organizada, religiosa e centralizada no poder do faraó","Civilização sem escrita e sem governo","Povo sem comércio e sem religião","Sociedade moderna e industrial"],a:0}
+];
+
+const fillBank = [
+{q:"O Egito Antigo se desenvolveu às margens do Rio __________.",a:"NILO"},
+{q:"O rei associado à unificação do Alto e Baixo Egito foi __________.",a:"MENES"},
+{q:"As regiões administrativas do Egito eram chamadas de __________.",a:"NOMOS"},
+{q:"Os chefes locais que administravam os nomos eram os __________.",a:"NOMARCAS"},
+{q:"O principal governante do Egito era o __________.",a:"FARAO"},
+{q:"Para os egípcios, o faraó era considerado um deus __________.",a:"VIVO"},
+{q:"Os momentos de crise política ficaram conhecidos como Períodos __________.",a:"INTERMEDIARIOS"},
+{q:"A região ao sul do Egito, rica em minerais, era a __________.",a:"NUBIA"},
+{q:"O povo cuja expulsão marcou o início do Novo Império foi chamado de __________.",a:"HICSOS"},
+{q:"No Novo Império, o Egito controlou importantes rotas __________.",a:"COMERCIAIS"},
+{q:"Os funcionários responsáveis pelos registros escritos eram os __________.",a:"ESCRIBAS"},
+{q:"Os escribas registravam colheitas, rebanhos e __________.",a:"IMPOSTOS"},
+{q:"A grande estátua com corpo de leão e cabeça humana ou de carneiro é chamada de __________.",a:"ESFINGE"},
+{q:"A Esfinge de __________ é uma das mais conhecidas.",a:"GIZE"},
+{q:"A unificação do Egito fortaleceu a organização do __________.",a:"ESTADO"}
+];
+
+const openBank = [
+{q:"Explique por que o faraó era tão importante para a sociedade egípcia.",keys:["farao","poder","religioso","politico","deus"],model:"O faraó era importante porque concentrava poder político, religioso e militar, sendo considerado um deus vivo pelos egípcios."},
+{q:"Explique a importância dos escribas para o funcionamento do Estado egípcio.",keys:["escribas","registros","impostos","colheitas","economia"],model:"Os escribas eram importantes porque registravam colheitas, rebanhos, impostos e informações econômicas, ajudando na administração do Estado."},
+{q:"O que foram os Períodos Intermediários no Egito Antigo?",keys:["crise","farao","enfraquecimento","invasoes","politica"],model:"Foram períodos de crise política, enfraquecimento do faraó, disputas internas e possibilidade de invasões externas."},
+{q:"Explique por que a unificação do Alto e Baixo Egito foi importante.",keys:["unificacao","menes","estado","poder","politico"],model:"A unificação foi importante porque juntou os dois reinos e fortaleceu o poder político, permitindo a organização de um grande Estado."},
+{q:"Cite duas características importantes da civilização egípcia apresentadas no texto-base.",keys:["religiosidade","farao","escrita","administracao","comercio","nilo"],model:"Entre as características estão a religiosidade, o poder centralizado no faraó, a escrita dos escribas, a administração eficiente e o comércio."}
+];
+
+let selected = {mcq:[],fill:[],open:[]};
+let minSeconds = 8*60;
+let timerInterval;
+let startedAt;
+
+function normalize(str){return (str||"").toString().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();}
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function pick(arr,n){return shuffle(arr).slice(0,n);}
+function populateStudents(){const s=document.getElementById('student');students.forEach(name=>{const opt=document.createElement('option');opt.value=name;opt.textContent=name;s.appendChild(opt);});}
+function startExam(){
+ const student=document.getElementById('student').value;
+ if(!student){alert('Selecione o nome do estudante.');return;}
+ selected.mcq=pick(mcqBank,15).map(item=>{let opts=item.o.map((text,idx)=>({text,correct:idx===item.a}));opts=shuffle(opts);return {...item,shuffled:opts,correctText:item.o[item.a]};});
+ selected.fill=pick(fillBank,3); selected.open=pick(openBank,2);
+ document.getElementById('startArea').classList.add('hidden');document.getElementById('examArea').classList.remove('hidden');document.getElementById('timerBox').classList.remove('hidden');
+ document.getElementById('examTitle').textContent='Avaliação de '+student;
+ renderExam(); startTimer(); window.scrollTo(0,0);
+}
+function startTimer(){startedAt=Date.now(); updateTimer(); timerInterval=setInterval(updateTimer,1000);}
+function updateTimer(){const elapsed=Math.floor((Date.now()-startedAt)/1000);const remain=Math.max(0,minSeconds-elapsed);const m=String(Math.floor(remain/60)).padStart(2,'0');const s=String(remain%60).padStart(2,'0');document.getElementById('timer').textContent=m+':'+s;if(remain<=0){document.getElementById('finishBtn').disabled=false;document.getElementById('timerBox').textContent='Tempo mínimo cumprido. Você já pode finalizar quando terminar.';clearInterval(timerInterval);}}
+function renderExam(){const area=document.getElementById('questionsArea');area.innerHTML='';let n=1;
+ area.innerHTML += '<h3>Parte 1 — Marque X</h3><p><b>Valor:</b> 15 questões, 0,10 cada.</p>';
+ selected.mcq.forEach((item,i)=>{let html=`<div class="question"><div class="qtitle"><span class="badge">${n++}</span>${item.q}</div><div class="options">`;item.shuffled.forEach((op,j)=>{html+=`<label><input type="radio" name="mcq${i}" value="${j}"> ${String.fromCharCode(65+j)}) ${op.text}</label>`});html+='</div></div>';area.innerHTML+=html;});
+ area.innerHTML += '<h3>Parte 2 — Complete</h3><p><b>Valor:</b> 3 questões, 0,20 cada. Escreva apenas a palavra ou expressão que completa corretamente.</p>';
+ selected.fill.forEach((item,i)=>{area.innerHTML += `<div class="question"><div class="qtitle"><span class="badge">${n++}</span>${item.q}</div><input id="fill${i}" placeholder="Digite sua resposta"></div>`;});
+ area.innerHTML += '<h3>Parte 3 — Responda</h3><p><b>Valor:</b> 2 questões, 0,20 cada. Responda com frases completas.</p>';
+ selected.open.forEach((item,i)=>{area.innerHTML += `<div class="question"><div class="qtitle"><span class="badge">${n++}</span>${item.q}</div><textarea id="open${i}" placeholder="Digite sua resposta"></textarea></div>`;});
+}
+function scoreOpen(answer, keys){const norm=normalize(answer).toLowerCase();let hits=0;keys.forEach(k=>{if(norm.includes(normalize(k).toLowerCase()))hits++;});return hits>=2;}
+function getElapsedSeconds(){return startedAt?Math.floor((Date.now()-startedAt)/1000):0;}
+function collectAnswers(){
+ let n=1;let answers=[];
+ selected.mcq.forEach((item,i)=>{const checked=document.querySelector(`input[name="mcq${i}"]:checked`);let ans='Nao respondida';let ok=false;if(checked){const op=item.shuffled[Number(checked.value)];ans=op.text;ok=op.correct;}answers.push({numero:n++,tipo:'multipla escolha',pergunta:item.q,resposta:ans,gabarito:item.correctText,correta:ok,valor:0.10});});
+ selected.fill.forEach((item,i)=>{const ans=document.getElementById('fill'+i).value;const ok=normalize(ans)===normalize(item.a);answers.push({numero:n++,tipo:'complete',pergunta:item.q,resposta:ans||'Nao respondida',gabarito:item.a,correta:ok,valor:0.20});});
+ selected.open.forEach((item,i)=>{const ans=document.getElementById('open'+i).value;const ok=scoreOpen(ans,item.keys);answers.push({numero:n++,tipo:'resposta aberta',pergunta:item.q,resposta:ans||'Nao respondida',gabarito:item.model,correta:ok,valor:0.20});});
+ return answers;
+}
+function buildSubmissionPayload(score,max){
+ return {submittedAt:new Date().toISOString(),student:document.getElementById('student').value,turma:document.getElementById('turma').value,score,max,elapsedSeconds:getElapsedSeconds(),answers:collectAnswers()};
+}
+async function saveToGoogleSheet(payload){
+ if(!GOOGLE_SCRIPT_URL){return {saved:false,message:'URL do Google Apps Script ainda nao configurada.'};}
+ try{
+  await fetch(GOOGLE_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+  return {saved:true,message:'Resposta enviada para a planilha.'};
+ }catch(error){
+  console.error(error);
+  return {saved:false,message:'Nao foi possivel enviar para a planilha. Imprima ou salve este resultado.'};
+ }
+}
+async function finishExam(){
+ let score=0;let max=2.5;let feedback='<h3>Correção detalhada</h3>';let n=1;
+ selected.mcq.forEach((item,i)=>{const checked=document.querySelector(`input[name="mcq${i}"]:checked`);let ans='Não respondida';let ok=false;if(checked){const op=item.shuffled[Number(checked.value)];ans=op.text;ok=op.correct;}if(ok)score+=0.10;feedback+=`<div class="question"><div class="qtitle"><span class="badge">${n++}</span>${item.q}</div><div>Sua resposta: <b>${ans}</b> ${ok?'<span class="correct">✔ correta</span>':'<span class="wrong">✘ incorreta</span>'}</div><div class="answerline">Gabarito: <b>${item.correctText}</b></div></div>`;});
+ selected.fill.forEach((item,i)=>{const ans=document.getElementById('fill'+i).value;const ok=normalize(ans)===normalize(item.a);if(ok)score+=0.20;feedback+=`<div class="question"><div class="qtitle"><span class="badge">${n++}</span>${item.q}</div><div>Sua resposta: <b>${ans||'Não respondida'}</b> ${ok?'<span class="correct">✔ correta</span>':'<span class="wrong">✘ incorreta</span>'}</div><div class="answerline">Gabarito: <b>${item.a}</b></div></div>`;});
+ selected.open.forEach((item,i)=>{const ans=document.getElementById('open'+i).value;const ok=scoreOpen(ans,item.keys);if(ok)score+=0.20;feedback+=`<div class="question"><div class="qtitle"><span class="badge">${n++}</span>${item.q}</div><div>Sua resposta:</div><div class="answerline">${ans||'Não respondida'}</div><div>${ok?'<span class="correct">✔ resposta com elementos esperados</span>':'<span class="wrong">✘ precisa de revisão do professor</span>'}</div><div class="answerline">Resposta esperada: <b>${item.model}</b></div></div>`;});
+ score=Math.round(score*100)/100;document.getElementById('scoreBox').innerHTML=`Aluno(a): ${document.getElementById('student').value}<br>Nota: ${score.toFixed(2).replace('.',',')} / ${max.toFixed(1).replace('.',',')}`;
+ document.getElementById('feedbackArea').innerHTML=feedback;document.getElementById('resultArea').classList.remove('hidden');document.getElementById('finishBtn').disabled=true;window.scrollTo(0,document.body.scrollHeight);
+ const saveStatus=await saveToGoogleSheet(buildSubmissionPayload(score,max));
+ const statusClass=saveStatus.saved?'correct':'wrong';
+ document.getElementById('scoreBox').innerHTML+=`<br><span class="${statusClass}" style="font-size:16px">${saveStatus.message}</span>`;
+}
+populateStudents();
+</script>
+</body>
+</html>
